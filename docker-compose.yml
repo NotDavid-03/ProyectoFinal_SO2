@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  # 1. Base de Datos (MongoDB)
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb_so2
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - red-proyecto
+
+  # 2. Servidor Backend (FastAPI)
+  backend:
+    build: ./backend
+    container_name: backend_so2
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/
+    depends_on:
+      - mongodb
+    networks:
+      - red-proyecto
+
+  # 3. Interfaz Web (Frontend)
+  frontend:
+    build: ./frontend
+    container_name: frontend_so2
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - red-proyecto
+
+volumes:
+  mongo_data:
+
+networks:
+  red-proyecto:
+    driver: bridge

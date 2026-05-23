@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telemetry Dashboard - Robótica UMG</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        /* Efecto de cristal esmerilado */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glow-indigo { box-shadow: 0 0 20px rgba(99, 102, 241, 0.15); }
+    </style>
+</head>
+<body class="bg-[#0f172a] text-slate-100 min-h-screen selection:bg-indigo-500 selection:text-white">
+
+    <div class="w-full bg-slate-950/60 border-b border-slate-800/50 py-2 px-6 flex justify-between items-center text-xs tracking-wider text-slate-400">
+        <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+            <span>UNIVERSIDAD MARIANO GÁLVEZ • CICLO 2026</span>
+        </div>
+        <div class="mono text-slate-500" id="live-clock">--:--:--</div>
+    </div>
+
+    <div class="container mx-auto px-6 py-8 max-w-7xl">
+        <header class="mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <div class="text-xs font-bold uppercase tracking-widest text-indigo-400 mb-1">Sistemas Operativos II</div>
+                <h1 class="text-4xl font-extrabold tracking-tight text-white flex items-center gap-3">
+                    <i class="fa-solid text-indigo-500 fa-microchip text-3xl"></i> Telemetry Hub
+                </h1>
+                <p class="text-slate-400 text-sm mt-1">Monitoreo estructural de eventos y control de hardware robótico.</p>
+            </div>
+            
+            <div class="flex items-center gap-3 bg-slate-900/80 p-1.5 rounded-xl border border-slate-800">
+                <span id="status-tag" class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 bg-emerald-950 text-emerald-400 border border-emerald-800/50">
+                    <i class="fa-solid fa-circle text-[8px] animate-pulse"></i> Servidor Online
+                </span>
+                <button onclick="cargarLogs()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-4 py-1.5 rounded-lg text-xs flex items-center gap-2 transition-all duration-300 shadow-lg shadow-indigo-600/20 active:scale-95">
+                    <i class="fa-solid fa-arrows-rotate"></i> Sync Data
+                </button>
+            </div>
+        </header>
+
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="glass-panel glow-indigo p-6 rounded-2xl relative overflow-hidden group">
+                <div class="absolute right-4 top-4 text-slate-700/40 text-4xl group-hover:text-indigo-500/10 transition-colors">
+                    <i class="fa-solid fa-list-check"></i>
+                </div>
+                <div class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Total de Eventos</div>
+                <div class="text-3xl font-bold mt-2 text-white mono" id="metric-total">0</div>
+                <div class="text-xs text-slate-500 mt-1">Registrados en MongoDB</div>
+            </div>
+            
+            <div class="glass-panel p-6 rounded-2xl relative overflow-hidden group">
+                <div class="absolute right-4 top-4 text-slate-700/40 text-4xl group-hover:text-amber-500/10 transition-colors">
+                    <i class="fa-solid fa-robot"></i>
+                </div>
+                <div class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Último Componente</div>
+                <div class="text-xl font-bold mt-3 text-amber-400 truncate tracking-wide" id="metric-component">N/A</div>
+                <div class="text-xs text-slate-500 mt-1">Dispositivo transmisor activo</div>
+            </div>
+
+            <div class="glass-panel p-6 rounded-2xl relative overflow-hidden group">
+                <div class="absolute right-4 top-4 text-slate-700/40 text-4xl group-hover:text-emerald-500/10 transition-colors">
+                    <i class="fa-solid fa-bolt"></i>
+                </div>
+                <div class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Última Acción</div>
+                <div class="text-xl font-bold mt-3 text-emerald-400 truncate tracking-wide" id="metric-action">Ninguna</div>
+                <div class="text-xs text-slate-500 mt-1">Último comando procesado</div>
+            </div>
+        </section>
+
+        <main class="glass-panel rounded-2xl overflow-hidden shadow-2xl">
+            <div class="px-6 py-4 bg-slate-900/40 border-b border-slate-800/50 flex justify-between items-center">
+                <h2 class="text-md font-bold tracking-wide text-slate-200 uppercase flex items-center gap-2">
+                    <i class="fa-solid fa-terminal text-indigo-400 text-xs"></i> Registro de Consola Remota
+                </h2>
+                <span class="text-xs text-slate-500">Auto-refresh activo cada 5s</span>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-950/40 text-slate-400 text-xs uppercase tracking-wider font-semibold border-b border-slate-800/70">
+                            <th class="py-4 px-6"><i class="fa-regular fa-clock mr-2"></i>Timestamp</th>
+                            <th class="py-4 px-6"><i class="fa-solid fa-network-wired mr-2"></i>Componente</th>
+                            <th class="py-4 px-6"><i class="fa-solid fa-gears mr-2"></i>Acción / Evento</th>
+                            <th class="py-4 px-6 text-right"><i class="fa-solid fa-code mr-2"></i>Payload Extendido (JSON)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logs-container" class="divide-y divide-slate-800/50 text-sm">
+                        <tr id="loading-row">
+                            <td colspan="4" class="py-12 text-center text-slate-500 italic">
+                                <i class="fa-solid fa-spinner animate-spin mr-2 text-indigo-500"></i> Estableciendo canal de datos y mapeando registros...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_URL = "http://35.222.60.219:8000/api/eventos";
+
+        // Reloj dinámico de la interfaz
+        setInterval(() => {
+            document.getElementById('live-clock').innerText = new Date().toLocaleTimeString();
+        }, 1000);
+
+        async function cargarLogs() {
+            const container = document.getElementById("logs-container");
+            const tag = document.getElementById("status-tag");
+            
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error("API Offline");
+                
+                const eventos = await response.json();
+                
+                // Actualizar métricas dinámicas
+                document.getElementById("metric-total").innerText = eventos.length;
+                if (eventos.length > 0) {
+                    const ultimo = eventos[0]; // Asumiendo que el backend los ordena del más nuevo al más viejo
+                    document.getElementById("metric-component").innerText = ultimo.componente || "N/A";
+                    document.getElementById("metric-action").innerText = (ultimo.accion || "N/A").replace(/_/g, ' ');
+                }
+
+                // Manejo de base de datos vacía
+                if (eventos.length === 0) {
+                    container.innerHTML = `
+                        <tr>
+                            <td colspan="4" class="py-12 text-center text-slate-500 italic">
+                                <i class="fa-solid fa-folder-open block text-2xl mb-2 text-slate-600"></i> No se registran eventos en el nodo central de MongoDB aún.
+                            </td>
+                        </tr>`;
+                    return;
+                }
+
+                // Inyección de filas elegante
+                container.innerHTML = "";
+                eventos.forEach(evento => {
+                    const fecha = new Date(evento.timestamp).toLocaleString();
+                    
+                    const fila = document.createElement("tr");
+                    fila.className = "hover:bg-slate-800/40 transition-colors duration-150 border-b border-slate-800/30";
+                    fila.innerHTML = `
+                        <td class="py-4 px-6 mono text-slate-400 font-medium text-xs">${fecha}</td>
+                        <td class="py-4 px-6">
+                            <span class="px-2.5 py-1 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs font-semibold">
+                                ${evento.componente}
+                            </span>
+                        </td>
+                        <td class="py-4 px-6 text-slate-200 font-medium tracking-wide">${evento.accion}</td>
+                        <td class="py-4 px-6 text-right">
+                            <span class="mono text-xs text-emerald-400 bg-slate-950/50 px-3 py-1.5 rounded-lg border border-slate-800/60 inline-block max-w-md truncate">
+                                ${JSON.stringify(evento.datos)}
+                            </span>
+                        </td>
+                    `;
+                    container.appendChild(fila);
+                });
+
+                // Cambiar estado visual a conectado
+                tag.className = "px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 bg-emerald-950 text-emerald-400 border border-emerald-800/50";
+                tag.innerHTML = `<i class="fa-solid fa-circle text-[8px] animate-pulse"></i> Servidor Online`;
+
+            } catch (error) {
+                console.error("Error:", error);
+                tag.className = "px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 bg-rose-950 text-rose-400 border border-rose-800/50";
+                tag.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> API Link Broken`;
+                
+                container.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="py-12 text-center text-rose-400 font-medium">
+                            <i class="fa-solid fa-triangle-exclamation block text-3xl mb-2"></i> Fallo en el enlace de telemetría. Verifique la IP del Backend en Google Cloud.
+                        </td>
+                    </tr>`;
+            }
+        }
+
+        window.onload = cargarLogs;
+        setInterval(cargarLogs, 5000); // Sincronización automática cada 5 segundos
+    </script>
+</body>
+</html>

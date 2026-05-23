@@ -1,0 +1,7 @@
+FROM nginx:alpine
+
+# Copiar el archivo html a la ruta donde Nginx sirve contenido web
+COPY index.html /usr/share/nginx/html/
+
+# Exponer el puerto estándar HTTP
+EXPOSE 80
