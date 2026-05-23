@@ -1,0 +1,18 @@
+sudo fallocate -l 2G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+
+
+# Actualizar el listado de paquetes del sistema
+sudo apt update && sudo apt upgrade -y
+
+# Instalar Docker y su plugin de Compose de un solo golpe
+sudo apt install docker.io docker-compose-v2 -y
+
+# Asegurar que el motor de Docker arranque de forma automática
+sudo systemctl enable --now docker
+
+docker --version
+docker compose version
