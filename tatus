@@ -1,0 +1,430 @@
+warning: in the working copy of 'frontend/index.html', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --cc frontend/index.html[m
+[1mindex 0cab539,dde86e5..0000000[m
+[1m--- a/frontend/index.html[m
+[1m+++ b/frontend/index.html[m
+[36m@@@ -1,196 -1,112 +1,311 @@@[m
+[31m -<!DOCTYPE html>[m
+[31m -<html lang="es">[m
+[31m -<head>[m
+[31m -    <meta charset="UTF-8">[m
+[31m -    <meta name="viewport" content="width=device-width, initial-scale=1.0">[m
+[31m -    <title>Dashboard de Logs - Robótica UMG</title>[m
+[31m -    <script src="https://cdn.tailwindcss.com"></script>[m
+[31m -</head>[m
+[31m -<body class="bg-gray-900 text-gray-100 min-h-screen font-sans">[m
+[31m -[m
+[31m -    <div class="container mx-auto px-4 py-8">[m
+[31m -        <header class="mb-8 border-b border-gray-800 pb-4 flex justify-between items-center">[m
+[31m -            <div>[m
+[31m -                <h1 class="text-3xl font-bold text-indigo-400 tracking-wide">🤖 ROBOT LOGS</h1>[m
+[31m -                <p class="text-gray-400 text-sm mt-1">Monitoreo de eventos en tiempo real - Proyecto Final SO2</p>[m
+[31m -            </div>[m
+[31m -            <div class="text-right">[m
+[31m -                <span id="status-tag" class="px-3 py-1 rounded-full text-xs font-semibold bg-green-900 text-green-300 border border-green-700">[m
+[31m -                    Sistema Activo[m
+[31m -                </span>[m
+[31m -            </div>[m
+[31m -        </header>[m
+[31m -[m
+[31m -        <main class="bg-gray-800 rounded-lg shadow-xl overflow-hidden border border-gray-700">[m
+[31m -            <div class="p-4 bg-gray-700 flex justify-between items-center border-b border-gray-600">[m
+[31m -                <h2 class="text-lg font-semibold text-white">Historial de Eventos</h2>[m
+[31m -                <button onclick="cargarLogs()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded text-sm font-medium transition duration-200">[m
+[31m -                    🔄 Actualizar[m
+[31m -                </button>[m
+[31m -            </div>[m
+[31m -            [m
+[31m -            <div class="overflow-x-auto">[m
+[31m -                <table class="w-full text-left border-collapse">[m
+[31m -                    <thead>[m
+[31m -                        <tr class="bg-gray-900 text-indigo-300 text-xs uppercase font-bold tracking-wider border-b border-gray-700">[m
+[31m -                            <th class="p-4">Timestamp</th>[m
+[31m -                            <th class="p-4">Componente</th>[m
+[31m -                            <th class="p-4">Acción / Evento</th>[m
+[31m -                            <th class="p-4">Datos Extra (JSON)</th>[m
+[31m -                        </tr>[m
+[31m -                    </thead>[m
+[31m -                    <tbody id="logs-container" class="divide-y divide-gray-700 text-sm">[m
+[31m -                        <tr id="loading-row">[m
+[31m -                            <td colspan="4" class="p-8 text-center text-gray-400 italic">[m
+[31m -                                Cargando eventos del servidor...[m
+[31m -                            </td>[m
+[31m -                        </tr>[m
+[31m -                    </tbody>[m
+[31m -                </table>[m
+[31m -            </div>[m
+[31m -        </main>[m
+[31m -    </div>[m
+[31m -[m
+[31m -    <script>[m
+[31m -        // Configuración de la URL del backend (Local para pruebas, luego la cambiaremos por la IP de Google Cloud)[m
+[31m -        const API_URL = "http://127.0.0.1:8000/api/eventos";[m
+[31m -[m
+[31m -        async function cargarLogs() {[m
+[31m -            const container = document.getElementById("logs-container");[m
+[31m -            [m
+[31m -            try {[m
+[31m -                const response = await fetch(API_URL);[m
+[31m -                if (!response.ok) throw new Error("Error en la respuesta del servidor");[m
+[31m -                [m
+[31m -                const eventos = await response.json();[m
+[31m -                [m
+[31m -                if (eventos.length === 0) {[m
+[31m -                    container.innerHTML = `[m
+[31m -                        <tr>[m
+[31m -                            <td colspan="4" class="p-8 text-center text-gray-400 italic">[m
+[31m -                                No hay eventos registrados en la base de datos aún.[m
+[31m -                            </td>[m
+[31m -                        </tr>`;[m
+[31m -                    return;[m
+[31m -                }[m
+[31m -[m
+[31m -                // Limpiar contenedor e inyectar filas[m
+[31m -                container.innerHTML = "";[m
+[31m -                eventos.forEach(evento => {[m
+[31m -                    // Formatear la fecha para que sea legible[m
+[31m -                    const fecha = new Date(evento.timestamp).toLocaleString();[m
+[31m -                    [m
+[31m -                    const fila = document.createElement("tr");[m
+[31m -                    fila.className = "hover:bg-gray-750 transition duration-150";[m
+[31m -                    fila.innerHTML = `[m
+[31m -                        <td class="p-4 font-mono text-gray-400 whitespace-nowrap">${fecha}</td>[m
+[31m -                        <td class="p-4 font-semibold text-indigo-400">${evento.componente}</td>[m
+[31m -                        <td class="p-4 text-gray-200">${evento.accion}</td>[m
+[31m -                        <td class="p-4 font-mono text-xs text-green-400 max-w-xs truncate">${JSON.stringify(evento.datos)}</td>[m
+[31m -                    `;[m
+[31m -                    container.appendChild(fila);[m
+[31m -                });[m
+[31m -[m
+[31m -            } catch (error) {[m
+[31m -                console.error("Error al conectar con el backend:", error);[m
+[31m -                container.innerHTML = `[m
+[31m -                    <tr>[m
+[31m -                        <td colspan="4" class="p-8 text-center text-red-400 font-medium">[m
+[31m -                            ⚠️ No se pudo conectar con el servidor Backend. Asegúrate de que esté corriendo.[m
+[31m -                        </td>[m
+[31m -                    </tr>`;[m
+[31m -            }[m
+[31m -        }[m
+[31m -[m
+[31m -        // Cargar los logs automáticamente al abrir la página[m
+[31m -        window.onload = cargarLogs;[m
+[31m -        [m
+[31m -        // Auto-actualizar cada 5 segundos para simular tiempo real[m
+[31m -        setInterval(cargarLogs, 5000);[m
+[31m -    </script>[m
+[31m -</body>[m
+[31m -</html>[m
+[32m++<<<<<<< HEAD[m
+[32m +<!DOCTYPE html>[m
+[32m +<html lang="es">[m
+[32m +<head>[m
+[32m +    <meta charset="UTF-8">[m
+[32m +    <meta name="viewport" content="width=device-width, initial-scale=1.0">[m
+[32m +    <title>Telemetry Dashboard - Robótica UMG</title>[m
+[32m +    <script src="https://cdn.tailwindcss.com"></script>[m
+[32m +    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">[m
+[32m +    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">[m
+[32m +    [m
+[32m +    <style>[m
+[32m +        body { font-family: 'Plus Jakarta Sans', sans-serif; }[m
+[32m +        .mono { font-family: 'JetBrains Mono', monospace; }[m
+[32m +        /* Efecto de cristal esmerilado */[m
+[32m +        .glass-panel {[m
+[32m +            background: rgba(30, 41, 59, 0.7);[m
+[32m +            backdrop-filter: blur(12px);[m
+[32m +            -webkit-backdrop-filter: blur(12px);[m
+[32m +            border: 1px solid rgba(255, 255, 255, 0.08);[m
+[32m +        }[m
+[32m +        .glow-indigo { box-shadow: 0 0 20px rgba(99, 102, 241, 0.15); }[m
+[32m +    </style>[m
+[32m +</head>[m
+[32m +<body class="bg-[#0f172a] text-slate-100 min-h-screen selection:bg-indigo-500 selection:text-white">[m
+[32m +[m
+[32m +    <div class="w-full bg-slate-950/60 border-b border-slate-800/50 py-2 px-6 flex justify-between items-center text-xs tracking-wider text-slate-400">[m
+[32m +        <div class="flex items-center gap-2">[m
+[32m +            <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>[m
+[32m +            <span>UNIVERSIDAD MARIANO GÁLVEZ • CICLO 2026</span>[m
+[32m +        </div>[m
+[32m +        <div class="mono text-slate-500" id="live-clock">--:--:--</div>[m
+[32m +    </div>[m
+[32m +[m
+[32m +    <div class="container mx-auto px-6 py-8 max-w-7xl">[m
+[32m +        <header class="mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">[m
+[32m +            <div>[m
+[32m +                <div class="text-xs font-bold uppercase tracking-widest text-indigo-400 mb-1">Sistemas Operativos II</div>[m
+[32m +                <h1 class="text-4xl font-extrabold tracking-tight text-white flex items-center gap-3">[m
+[32m +                    <i class="fa-solid text-indigo-500 fa-microchip text-3xl"></i> Telemetry Hub[m
+[32m +                </h1>[m
+[32m +                <p class="text-slate-400 text-sm mt-1">Monitoreo estructural de eventos y control de hardware robótico.</p>[m
+[32m +            </div>[m
+[32m +            [m
+[32m +            <div class="flex items-center gap-3 bg-slate-900/80 p-1.5 rounded-xl border border-slate-800">[m
+[32m +                <span id="status-tag" class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 bg-emerald-950 text-emerald-400 border border-emerald-800/50">[m
+[32m +                    <i class="fa-solid fa-circle text-[8px] animate-pulse"></i> Servidor Online[m
+[32m +                </span>[m
+[32m +                <button onclick="cargarLogs()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-4 py-1.5 rounded-lg text-xs flex items-center gap-2 transition-all duration-300 shadow-lg shadow-indigo-600/20 active:scale-95">[m
+[32m +                    <i class="fa-solid fa-arrows-rotate"></i> Sync Data[m
+[32m +                </button>[m
+[32m +            </div>[m
+[32m +        </header>[m
+[32m +[m
+[32m +        <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">[m
+[32m +            <div class="glass-panel glow-indigo p-6 rounded-2xl relative overflow-hidden group">[m
+[32m +                <div class="absolute right-4 top-4 text-slate-700/40 text-4xl group-hover:text-indigo-500/10 transition-colors">[m
+[32m +                    <i class="fa-solid fa-list-check"></i>[m
+[32m +                </div>[m
+[32m +                <div class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Total de Eventos</div>[m
+[32m +                <div class="text-3xl font-bold mt-2 text-white mono" id="metric-total">0</div>[m
+[32m +                <div class="text-xs text-slate-500 mt-1">Registrados en MongoDB</div>[m
+[32m +            </div>[m
+[32m +            [m
+[32m +            <div class="glass-panel p-6 rounded-2xl relative overflow-hidden group">[m
+[32m +                <div class="absolute right-4 top-4 text-slate-700/40 text-4xl group-hover:text-amber-500/10 transition-colors">[m
+[32m +                    <i class="fa-solid fa-robot"></i>[m
+[32m +                </div>[m
+[32m +                <div class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Último Componente</div>[m
+[32m +                <div class="text-xl font-bold mt-3 text-amber-400 truncate tracking-wide" id="metric-component">N/A</div>[m
+[32m +                <div class="text-xs text-slate-500 mt-1">Dispositivo transmisor activo</div>[m
+[32m +            </div>[m
+[32m +[m
+[32m +            <div class="glass-panel p-6 rounded-2xl relative overflow-hidden group">[m
+[32m +                <div class="absolute right-4 top-4 text-slate-700/40 text-4xl group-hover:text-emerald-500/10 transition-colors">[m
+[32m +                    <i class="fa-solid fa-bolt"></i>[m
+[32m +                </div>[m
+[32m +                <div class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Última Acción</div>[m
+[32m +                <div class="text-xl font-bold mt-3 text-emerald-400 truncate tracking-wide" id="metric-action">Ninguna</div>[m
+[32m +                <div class="text-xs text-slate-500 mt-1">Último comando procesado</div>[m
+[32m +            </div>[m
+[32m +        </section>[m
+[32m +[m
+[32m +        <main class="glass-panel rounded-2xl overflow-hidden shadow-2xl">[m
+[32m +            <div class="px-6 py-4 bg-slate-900/40 border-b border-slate-800/50 flex justify-between items-center">[m
+[32m +                <h2 class="text-md font-bold tracking-wide text-slate-200 uppercase flex items-center gap-2">[m
+[32m +                    <i class="fa-solid fa-terminal text-indigo-400 text-xs"></i> Registro de Consola Remota[m
+[32m +                </h2>[m
+[32m +                <span class="text-xs text-slate-500">Auto-refresh activo cada 5s</span>[m
+[32m +            </div>[m
+[32m +            [m
+[32m +            <div class="overflow-x-auto">[m
+[32m +                <table class="w-full text-left border-collapse">[m
+[32m +                    <thead>[m
+[32m +                        <tr class="bg-slate-950/40 text-slate-400 text-xs uppercase tracking-wider font-semibold border-b border-slate-800/70">[m
+[32m +                            <th class="py-4 px-6"><i class="fa-regular fa-clock mr-2"></i>Timestamp</th>[m
+[32m +                            <th class="py-4 px-6"><i class="fa-solid fa-network-wired mr-2"></i>Componente</th>[m
+[32m +                            <th class="py-4 px-6"><i class="fa-solid fa-gears mr-2"></i>Acción / Evento</th>[m
+[32m +                            <th class="py-4 px-6 text-right"><i class="fa-solid fa-code mr-2"></i>Payload Extendido (JSON)</th>[m
+[32m +                        </tr>[m
+[32m +                    </thead>[m
+[32m +                    <tbody id="logs-container" class="divide-y divide-slate-800/50 text-sm">[m
+[32m +                        <tr id="loading-row">[m
+[32m +                            <td colspan="4" class="py-12 text-center text-slate-500 italic">[m
+[32m +                                <i class="fa-solid fa-spinner animate-spin mr-2 text-indigo-500"></i> Estableciendo canal de datos y mapeando registros...[m
+[32m +                            </td>[m
+[32m +                        </tr>[m
+[32m +                    </tbody>[m
+[32m +                </table>[m
+[32m +            </div>[m
+[32m +        </main>[m
+[32m +    </div>[m
+[32m +[m
+[32m +    <script>[m
+[32m +        const API_URL = "http://35.222.60.219:8000/api/eventos";[m
+[32m +[m
+[32m +        // Reloj dinámico de la interfaz[m
+[32m +        setInterval(() => {[m
+[32m +            document.getElementById('live-clock').innerText = new Date().toLocaleTimeString();[m
+[32m +        }, 1000);[m
+[32m +[m
+[32m +        async function cargarLogs() {[m
+[32m +            const container = document.getElementById("logs-container");[m
+[32m +            const tag = document.getElementById("status-tag");[m
+[32m +            [m
+[32m +            try {[m
+[32m +                const response = await fetch(API_URL);[m
+[32m +                if (!response.ok) throw new Error("API Offline");[m
+[32m +                [m
+[32m +                const eventos = await response.json();[m
+[32m +                [m
+[32m +                // Actualizar métricas dinámicas[m
+[32m +                document.getElementById("metric-total").innerText = eventos.length;[m
+[32m +                if (eventos.length > 0) {[m
+[32m +                    const ultimo = eventos[0]; // Asumiendo que el backend los ordena del más nuevo al más viejo[m
+[32m +                    document.getElementById("metric-component").innerText = ultimo.componente || "N/A";[m
+[32m +                    document.getElementById("metric-action").innerText = (ultimo.accion || "N/A").replace(/_/g, ' ');[m
+[32m +                }[m
+[32m +[m
+[32m +                // Manejo de base de datos vacía[m
+[32m +                if (eventos.length === 0) {[m
+[32m +                    container.innerHTML = `[m
+[32m +                        <tr>[m
+[32m +                            <td colspan="4" class="py-12 text-center text-slate-500 italic">[m
+[32m +                                <i class="fa-solid fa-folder-open block text-2xl mb-2 text-slate-600"></i> No se registran eventos en el nodo central de MongoDB aún.[m
+[32m +                            </td>[m
+[32m +                        </tr>`;[m
+[32m +                    return;[m
+[32m +                }[m
+[32m +[m
+[32m +                // Inyección de filas elegante[m
+[32m +                container.innerHTML = "";[m
+[32m +                eventos.forEach(evento => {[m
+[32m +                    const fecha = new Date(evento.timestamp).toLocaleString();[m
+[32m +                    [m
+[32m +                    const fila = document.createElement("tr");[m
+[32m +                    fila.className = "hover:bg-slate-800/40 transition-colors duration-150 border-b border-slate-800/30";[m
+[32m +                    fila.innerHTML = `[m
+[32m +                        <td class="py-4 px-6 mono text-slate-400 font-medium text-xs">${fecha}</td>[m
+[32m +                        <td class="py-4 px-6">[m
+[32m +                            <span class="px-2.5 py-1 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs font-semibold">[m
+[32m +                                ${evento.componente}[m
+[32m +                            </span>[m
+[32m +                        </td>[m
+[32m +                        <td class="py-4 px-6 text-slate-200 font-medium tracking-wide">${evento.accion}</td>[m
+[32m +                        <td class="py-4 px-6 text-right">[m
+[32m +                            <span class="mono text-xs text-emerald-400 bg-slate-950/50 px-3 py-1.5 rounded-lg border border-slate-800/60 inline-block max-w-md truncate">[m
+[32m +                                ${JSON.stringify(evento.datos)}[m
+[32m +                            </span>[m
+[32m +                        </td>[m
+[32m +                    `;[m
+[32m +                    container.appendChild(fila);[m
+[32m +                });[m
+[32m +[m
+[32m +                // Cambiar estado visual a conectado[m
+[32m +                tag.className = "px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 bg-emerald-950 text-emerald-400 border border-emerald-800/50";[m
+[32m +                tag.innerHTML = `<i class="fa-solid fa-circle text-[8px] animate-pulse"></i> Servidor Online`;[m
+[32m +[m
+[32m +            } catch (error) {[m
+[32m +                console.error("Error:", error);[m
+[32m +                tag.className = "px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 bg-rose-950 text-rose-400 border border-rose-800/50";[m
+[32m +                tag.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> API Link Broken`;[m
+[32m +                [m
+[32m +                container.innerHTML = `[m
+[32m +                    <tr>[m
+[32m +                        <td colspan="4" class="py-12 text-center text-rose-400 font-medium">[m
+[32m +                            <i class="fa-solid fa-triangle-exclamation block text-3xl mb-2"></i> Fallo en el enlace de telemetría. Verifique la IP del Backend en Google Cloud.[m
+[32m +                        </td>[m
+[32m +                    </tr>`;[m
+[32m +            }[m
+[32m +        }[m
+[32m +[m
+[32m +        window.onload = cargarLogs;[m
+[32m +        setInterval(cargarLogs, 5000); // Sincronización automática cada 5 segundos[m
+[32m +    </script>[m
+[32m +</body>[m
+[31m- </html>[m
+[32m++</html>[m
+[32m++=======[m
+[32m++<!DOCTYPE html>[m
+[32m++<html lang="es">[m
+[32m++<head>[m
+[32m++    <meta charset="UTF-8">[m
+[32m++    <meta name="viewport" content="width=device-width, initial-scale=1.0">[m
+[32m++    <title>Dashboard de Logs - Robótica UMG</title>[m
+[32m++    <script src="https://cdn.tailwindcss.com"></script>[m
+[32m++</head>[m
+[32m++<body class="bg-gray-900 text-gray-100 min-h-screen font-sans">[m
+[32m++[m
+[32m++    <div class="container mx-auto px-4 py-8">[m
+[32m++        <header class="mb-8 border-b border-gray-800 pb-4 flex justify-between items-center">[m
+[32m++            <div>[m
+[32m++                <h1 class="text-3xl font-bold text-indigo-400 tracking-wide">🤖 ROBOT LOGS</h1>[m
+[32m++                <p class="text-gray-400 text-sm mt-1">Monitoreo de eventos en tiempo real - Proyecto Final SO2</p>[m
+[32m++            </div>[m
+[32m++            <div class="text-right">[m
+[32m++                <span id="status-tag" class="px-3 py-1 rounded-full text-xs font-semibold bg-green-900 text-green-300 border border-green-700">[m
+[32m++                    Sistema Activo[m
+[32m++                </span>[m
+[32m++            </div>[m
+[32m++        </header>[m
+[32m++[m
+[32m++        <main class="bg-gray-800 rounded-lg shadow-xl overflow-hidden border border-gray-700">[m
+[32m++            <div class="p-4 bg-gray-700 flex justify-between items-center border-b border-gray-600">[m
+[32m++                <h2 class="text-lg font-semibold text-white">Historial de Eventos</h2>[m
+[32m++                <button onclick="cargarLogs()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded text-sm font-medium transition duration-200">[m
+[32m++                    🔄 Actualizar[m
+[32m++                </button>[m
+[32m++            </div>[m
+[32m++            [m
+[32m++            <div class="overflow-x-auto">[m
+[32m++                <table class="w-full text-left border-collapse">[m
+[32m++                    <thead>[m
+[32m++                        <tr class="bg-gray-900 text-indigo-300 text-xs uppercase font-bold tracking-wider border-b border-gray-700">[m
+[32m++                            <th class="p-4">Timestamp</th>[m
+[32m++                            <th class="p-4">Componente</th>[m
+[32m++                            <th class="p-4">Acción / Evento</th>[m
+[32m++                            <th class="p-4">Datos Extra (JSON)</th>[m
+[32m++                        </tr>[m
+[32m++                    </thead>[m
+[32m++                    <tbody id="logs-container" class="divide-y divide-gray-700 text-sm">[m
+[32m++                        <tr id="loading-row">[m
+[32m++                            <td colspan="4" class="p-8 text-center text-gray-400 italic">[m
+[32m++                                Cargando eventos del servidor...[m
+[32m++                            </td>[m
+[32m++                        </tr>[m
+[32m++                    </tbody>[m
+[32m++                </table>[m
+[32m++            </div>[m
+[32m++        </main>[m
+[32m++    </div>[m
+[32m++[m
+[32m++    <script>[m
+[32m++        // Configuración de la URL del backend (Local para pruebas, luego la cambiaremos por la IP de Google Cloud)[m
+[32m++        const API_URL = "http://127.0.0.1:8000/api/eventos";[m
+[32m++[m
+[32m++        async function cargarLogs() {[m
+[32m++            const container = document.getElementById("logs-container");[m
+[32m++            [m
+[32m++            try {[m
+[32m++                const response = await fetch(API_URL);[m
+[32m++                if (!response.ok) throw new Error("Error en la respuesta del servidor");[m
+[32m++                [m
+[32m++                const eventos = await response.json();[m
+[32m++                [m
+[32m++                if (eventos.length === 0) {[m
+[32m++                    container.innerHTML = `[m
+[32m++                        <tr>[m
+[32m++                            <td colspan="4" class="p-8 text-center text-gray-400 italic">[m
+[32m++                                No hay eventos registrados en la base de datos aún.[m
+[32m++                            </td>[m
+[32m++                        </tr>`;[m
+[32m++                    return;[m
+[32m++                }[m
+[32m++[m
+[32m++                // Limpiar contenedor e inyectar filas[m
+[32m++                container.innerHTML = "";[m
+[32m++                eventos.forEach(evento => {[m
+[32m++                    // Formatear la fecha para que sea legible[m
+[32m++                    const fecha = new Date(evento.timestamp).toLocaleString();[m
+[32m++                    [m
+[32m++                    const fila = document.createElement("tr");[m
+[32m++                    fila.className = "hover:bg-gray-750 transition duration-150";[m
+[32m++                    fila.innerHTML = `[m
+[32m++                        <td class="p-4 font-mono text-gray-400 whitespace-nowrap">${fecha}</td>[m
+[32m++                        <td class="p-4 font-semibold text-indigo-400">${evento.componente}</td>[m
+[32m++                        <td class="p-4 text-gray-200">${evento.accion}</td>[m
+[32m++                        <td class="p-4 font-mono text-xs text-green-400 max-w-xs truncate">${JSON.stringify(evento.datos)}</td>[m
+[32m++                    `;[m
+[32m++                    container.appendChild(fila);[m
+[32m++                });[m
+[32m++[m
+[32m++            } catch (error) {[m
+[32m++                console.error("Error al conectar con el backend:", error);[m
+[32m++                container.innerHTML = `[m
+[32m++                    <tr>[m
+[32m++                        <td colspan="4" class="p-8 text-center text-red-400 font-medium">[m
+[32m++                            ⚠️ No se pudo conectar con el servidor Backend. Asegúrate de que esté corriendo.[m
+[32m++                        </td>[m
+[32m++                    </tr>`;[m
+[32m++            }[m
+[32m++        }[m
+[32m++[m
+[32m++        // Cargar los logs automáticamente al abrir la página[m
+[32m++        window.onload = cargarLogs;[m
+[32m++        [m
+[32m++        // Auto-actualizar cada 5 segundos para simular tiempo real[m
+[32m++        setInterval(cargarLogs, 5000);[m
+[32m++    </script>[m
+[32m++</body>[m
+[32m++</html>[m
+[32m++>>>>>>> 29f3d109131e718bea79152f88eabec9a9e82b41[m
